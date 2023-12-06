@@ -33,9 +33,7 @@ with open(input_file) as f:
 			seed_number_range_length = seed_numbers[1::2]
 			
 			# PART 2
-			final_seed_numbers = []
-			for range_start, range_length in zip(seed_number_range_start, seed_number_range_length):
-				final_seed_numbers.extend(range(range_start, range_start + range_length))
+			final_seed_numbers = [(range_start, range_length) for range_start, range_length in zip(seed_number_range_start, seed_number_range_length)]
 
 		# Empty line
 		elif not stripped_line:
@@ -94,7 +92,6 @@ def find_lowest_location(initial_seeds, seed_to_soil_mapping, soil_to_fertilizer
 
 	return lowest_location
 
-
 def find_actual_mapping_from_range(mapping_value, mapping):
 
 	mapping_found = False
@@ -106,14 +103,37 @@ def find_actual_mapping_from_range(mapping_value, mapping):
 			break
 	return mapped_value if mapping_found else mapping_value
 
-print('PART1:',find_lowest_location(seed_numbers, seed_to_soil_mapping, soil_to_fertilizer_mapping, fertilizer_to_water_mapping, water_to_light_mapping,
-						 light_to_temperature_mapping, temperature_to_humidity_mapping, humidity_to_location_mapping))
+# print('PART1:',find_lowest_location(seed_numbers, seed_to_soil_mapping, soil_to_fertilizer_mapping, fertilizer_to_water_mapping, water_to_light_mapping,
+# 						 light_to_temperature_mapping, temperature_to_humidity_mapping, humidity_to_location_mapping))
 
 
 # ---------------------------------------------------------------------------- #
 #                                    Part 2                                    #
 # ---------------------------------------------------------------------------- #
 
-print('PART2:',find_lowest_location(final_seed_numbers, seed_to_soil_mapping, soil_to_fertilizer_mapping, fertilizer_to_water_mapping, water_to_light_mapping,
+def find_lowest_location2(final_seed_numbers, seed_to_soil_mapping, soil_to_fertilizer_mapping, fertilizer_to_water_mapping, water_to_light_mapping,
+						 light_to_temperature_mapping, temperature_to_humidity_mapping, humidity_to_location_mapping):
+	
+	lowest_location = 1e13
+	for pair_number, seed_info in enumerate(final_seed_numbers):
+			range_start = seed_info[0]
+			range_length = seed_info[1]
+			print('PAIR NUMBER:', pair_number)
+			for seed in range(range_start, range_start + range_length):
+
+				soil = find_actual_mapping_from_range(seed, seed_to_soil_mapping)
+				fertilizer = find_actual_mapping_from_range(soil, soil_to_fertilizer_mapping)
+				water = find_actual_mapping_from_range(fertilizer, fertilizer_to_water_mapping)
+				light = find_actual_mapping_from_range(water, water_to_light_mapping)
+				temperature = find_actual_mapping_from_range(light, light_to_temperature_mapping)
+				humidity = find_actual_mapping_from_range(temperature, temperature_to_humidity_mapping)
+				location = find_actual_mapping_from_range(humidity, humidity_to_location_mapping)
+				# print('SEED:', seed, 'LOCATION:', location)
+				if location < lowest_location:
+					lowest_location = location
+
+	return lowest_location
+
+print('PART2:',find_lowest_location2(final_seed_numbers, seed_to_soil_mapping, soil_to_fertilizer_mapping, fertilizer_to_water_mapping, water_to_light_mapping,
 						 light_to_temperature_mapping, temperature_to_humidity_mapping, humidity_to_location_mapping))
 
