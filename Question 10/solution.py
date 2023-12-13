@@ -1,5 +1,5 @@
 input_file = 'input2.txt'
-
+import random
 # ---------------------------------------------------------------------------- #
 #                                    Part 1                                    #
 # ---------------------------------------------------------------------------- #
@@ -13,7 +13,9 @@ class Pipe:
 
 class Board:
 
-	def __init__(self, board_input) -> None:
+	def __init__(self, board_input, num_of_rows, num_of_cols) -> None:
+		self.num_of_rows = num_of_rows
+		self.num_of_cols = num_of_cols
 		self.pipes = [[Pipe((row_number, col_number), pipe_symbol,self.get_pipe_connection_mapping(pipe_symbol)) for col_number, pipe_symbol in enumerate(row)] for row_number, row in enumerate(board_input)]
 		self.pipes_in_loop = []
 
@@ -62,23 +64,27 @@ class Board:
 			for col_number in range(num_of_cols):
 				self.pipes[row_number][col_number].possible_movements = self.find_possible_movements(row_number, col_number)
 
-	def find_loop(self, starting_pipe):
+	def find_loop(self, starting_pipe, current_pipe, last_intersection):
 
-		current_pipe = starting_pipe
 		next_pipe = None
-		
-		self.pipes_in_loop = [starting_pipe]
+		pipes_in_loop = [current_pipe]
 
-		while next_pipe != starting_pipe.id:
+		while next_pipe != starting_pipe:
+			
+			allowed_movements = [movement for movement in current_pipe.possible_movements if movement.]
+			next_pipe = random.choice(current_pipe.possible_movements) if not IndexError else False
+			pipes_in_loop.append(next_pipe)
 
-			next_pipe = 1
-
-		pass
+			if not next_pipe:
+				next_pipe = last_intersection
+				pipes_in_loop = pipes_in_loop[current_pipe]
+		return pipes_in_loop
 board_input = list(open(input_file))
 board_input = [list(line.strip()) for line in board_input]
+num_of_rows, num_of_cols = len(board_input), len(board_input[0])
 start_location = [(row_number, column_number) for row_number, row in enumerate(board_input) for column_number, pipe in enumerate(row) if pipe =='S'][0]
 
-board = Board(board_input)
+board = Board(board_input, num_of_rows, num_of_cols)
 start_location_row_number, start_location_column_number = start_location[0], start_location[1]
 board.fill_start_location_connection_mapping(start_location_row_number, start_location_column_number)
 board.fill_possible_movements()
