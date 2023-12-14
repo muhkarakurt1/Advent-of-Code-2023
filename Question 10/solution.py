@@ -9,15 +9,16 @@ class Pipe:
 		self.coordinates = coordinates
 		self.pipe_symbol = pipe_symbol
 		self.connection_mapping = connection_mapping
-		self.possible_movements = None
-
+ 
 class Board:
 
 	def __init__(self, board_input, num_of_rows, num_of_cols) -> None:
 		self.num_of_rows = num_of_rows
 		self.num_of_cols = num_of_cols
 		self.pipes = [[Pipe((row_number, col_number), pipe_symbol,self.get_pipe_connection_mapping(pipe_symbol)) for col_number, pipe_symbol in enumerate(row)] for row_number, row in enumerate(board_input)]
-		self.pipes_in_loop = []
+		self.pipes_in_loop = None
+		self.coordinates_in_loop = None
+		self.distance_to_loop_start = None
 
 	def get_pipe_connection_mapping(self, pipe_symbol):
 
@@ -53,32 +54,61 @@ class Board:
 				continue
 			else:
 				if opposite_direction in self.pipes[y+ dy][x + dx].connection_mapping:
-					possible_movements.append(self.pipes[y+ dy][x + dx])
+					possible_movements.append(movement_direction)
 		
 		return possible_movements
 	
-	def fill_possible_movements(self):
-		num_of_rows = len(self.pipes)
-		num_of_cols = len(self.pipes[0])
-		for row_number in range(num_of_rows):
-			for col_number in range(num_of_cols):
-				self.pipes[row_number][col_number].possible_movements = self.find_possible_movements(row_number, col_number)
+	def fill_loop_objects(self, starting_pipe):
 
-	def find_loop(self, starting_pipe, current_pipe, last_intersection):
+		opposite_directions = {'W':'E','E':'W','N':'S','S':'N'}
+		if self.pipes_in_loop is None:
+			self.pipes_in_loop = [starting_pipe]
 
-		next_pipe = None
-		pipes_in_loop = [current_pipe]
+		current_pipe = self.pipes_in_loop[-1]
 
-		while next_pipe != starting_pipe:
-			
-			allowed_movements = [movement for movement in current_pipe.possible_movements if movement.]
-			next_pipe = random.choice(current_pipe.possible_movements) if not IndexError else False
-			pipes_in_loop.append(next_pipe)
+		while current_pipe != starting_pipe or len(self.pipes_in_loop) == 1:
+			# print(current_pipe.coordinates)
+			current_pipe_coordinates = current_pipe.coordinates
 
-			if not next_pipe:
-				next_pipe = last_intersection
-				pipes_in_loop = pipes_in_loop[current_pipe]
-		return pipes_in_loop
+			# Find next direction and its opposite
+			if len(self.pipes_in_loop) == 1:
+				next_direction = random.choice(starting_pipe.connection_mapping)
+				opposite_direction = opposite_directions[next_direction]
+			else:
+				next_direction = [direction for direction in current_pipe.connection_mapping if direction!=opposite_direction][0]
+				opposite_direction = opposite_directions[next_direction]
+
+			# Move towards the next direction
+			if next_direction == 'E':
+				next_pipe = self.pipes[current_pipe_coordinates[0]][current_pipe_coordinates[1] + 1]
+				self.pipes_in_loop.append(next_pipe)
+				current_pipe = next_pipe
+			elif next_direction == 'W':
+				next_pipe = self.pipes[current_pipe_coordinates[0]][current_pipe_coordinates[1] - 1]
+				self.pipes_in_loop.append(next_pipe)
+				current_pipe = next_pipe
+			elif next_direction == 'N':
+				next_pipe = self.pipes[current_pipe_coordinates[0] - 1][current_pipe_coordinates[1]]
+				self.pipes_in_loop.append(next_pipe)
+				current_pipe = next_pipe
+			elif next_direction == 'S':
+				next_pipe = self.pipes[current_pipe_coordinates[0] + 1][current_pipe_coordinates[1]]
+				self.pipes_in_loop.append(next_pipe)
+				current_pipe = next_pipe
+
+	def fill_loop_coordinates(self):
+		self.coordinates_in_loop = [pipe.coordinates for pipe in self.pipes_in_loop]
+
+	def fill_step_size(self):
+
+		reversed_loop = self.pipes_in_loop[::-1]
+		
+		distances_from_left = {pipe.coordinates: left_distance for left_distance, pipe in enumerate(self.pipes_in_loop) if pipe.pipe_symbol != 'S'}
+		distances_from_right = {pipe.coordinates: right_distance for right_distance, pipe in enumerate(reversed_loop) if pipe.pipe_symbol != 'S'}
+
+		self.distance_to_loop_start = {pipe.coordinates: min(distances_from_left[pipe.coordinates], distances_from_right[pipe.coordinates]) for _,pipe in enumerate(self.pipes_in_loop) if pipe.pipe_symbol != 'S'}
+
+
 board_input = list(open(input_file))
 board_input = [list(line.strip()) for line in board_input]
 num_of_rows, num_of_cols = len(board_input), len(board_input[0])
@@ -87,11 +117,13 @@ start_location = [(row_number, column_number) for row_number, row in enumerate(b
 board = Board(board_input, num_of_rows, num_of_cols)
 start_location_row_number, start_location_column_number = start_location[0], start_location[1]
 board.fill_start_location_connection_mapping(start_location_row_number, start_location_column_number)
-board.fill_possible_movements()
-
 starting_pipe_obj = [pipe_obj for row in board.pipes for pipe_obj in row if pipe_obj.pipe_symbol == 'S'][0]
-board.find_loop(starting_pipe_obj)
 
+board.fill_loop_objects(starting_pipe_obj)
+board.fill_loop_coordinates()
+board.fill_step_size()
+print('PART1:', max(board.distance_to_loop_start.values()))
 # ---------------------------------------------------------------------------- #
 #                                    Part 2                                    #
 # ---------------------------------------------------------------------------- #
+
