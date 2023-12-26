@@ -2,5 +2,6 @@
 	"black-formatter.args": [
 		"--line-length",
 		"300"
-	]
+	],
+	"editor.defaultFormatter": "ms-python.black-formatter"
 }

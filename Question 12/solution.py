@@ -92,7 +92,4 @@ def find_number_of_arrangement_sum_quicker(damaged_record_springs, group_numbers
     return number_of_arrangement_sum
 
 
-print(
-    "PART 2:",
-    find_number_of_arrangement_sum_quicker(damaged_record_springs, group_numbers),
-)
+print("PART 2:", find_number_of_arrangement_sum_quicker(damaged_record_springs, group_numbers))
